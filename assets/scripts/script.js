@@ -3,32 +3,17 @@ const BACK = "card_back";
 const CARD = "card";
 const ICON = "icon";
 
-let techs = ['bootstrap',
-    'css',
-    'electron',
-    'firebase',
-    'html',
-    'javascript',
-    'jquery',
-    'mongo',
-    'node',
-    'react'];
-
-
-let cards = null;
-
 startGame();
 
 function startGame() {
-    cards = createCardsFromTechs(techs);
-    shuffleCards(cards);
-    initilizeCards(cards);
+    initilizeCards(game.createCardsFromTechs());
 }
 
 function initilizeCards(cards) {
     let gameBoard = document.getElementById("gameBoard");
+    gameBoard.innerHTML = '';
+    game.cards.forEach(card => {
 
-    cards.forEach(card => {
         let cardElement = document.createElement('div'); //criando o elemento
         cardElement.id = card.id;
         cardElement.classList.add(CARD); //adicionando a classe card
@@ -61,44 +46,34 @@ function createCardFace(face, card, element) {
     element.appendChild(cardElementFace)
 }
 
-function shuffleCards(cards) {
-    let currentIndex = cards.length;
-    let randomIndex = 0;
+function flipcard() {
 
-    while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
+    if (game.setCard(this.id)) {
+        this.classList.add("flip");
+        if (game.secondCard) {
+            if (game.checkMatch()) {
+                game.clearCards();
+                if (game.checkGameOver()) {
+                    let gameOverLayer = document.getElementById("gameOver");
+                    gameOverLayer.style.display = 'flex';
+                }
+            } else {
+                setTimeout(() => {
+                    let firstCardView = document.getElementById(game.firstCard.id);
+                    let secondCardView = document.getElementById(game.secondCard.id);
 
-        [cards[randomIndex], cards[currentIndex]] = [cards[currentIndex], cards[randomIndex]]; //invertendo valores
+                    firstCardView.classList.remove('flip');
+                    secondCardView.classList.remove('flip');
+                    game.unflipCards();
+                }, 1000);
+            }
+        }
     }
 }
 
-createCardsFromTechs(techs);
-function createCardsFromTechs(techs) { //criando uma carta para cada tech
-    let cards = [];
-    techs.forEach((tech) => { //loop de um array
-        cards.push(createPairFromTech(tech));
-    })
-
-    return cards.flatMap(pair => pair);
-}
-
-function createPairFromTech(tech) {
-    return [{
-        id: createIdWithTech(tech),
-        icon: tech,
-        flipped: false,
-    }, {
-        id: createIdWithTech(tech),
-        icon: tech,
-        flipped: false,
-    }]
-}
-
-function createIdWithTech(tech) {
-    return tech + parseInt(Math.random() * 1000);
-}
-
-function flipcard() {
-this.classList.add("flip");
+function restart() {
+    game.clearCards();
+    startGame();
+    let gameOverLayer = document.getElementById("gameOver");
+    gameOverLayer.style.display = 'none';
 }
